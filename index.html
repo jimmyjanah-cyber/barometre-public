@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Baromètre Public</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 700px; margin: auto; padding: 20px; background: #f5f5f5; }
+    h1 { text-align: center; }
+    form { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .candidate { margin: 6px 0; }
+    label { margin-left: 4px; }
+    button { margin-top: 20px; padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    #result { margin-top: 20px; font-weight: bold; color: #333; }
+    .disclaimer { font-size: 0.9em; margin-top: 10px; color: #666; }
+  </style>
+</head>
+<body>
+  <h1>Baromètre Public</h1>
+  <p>Si l’élection présidentielle avait lieu aujourd’hui, pour qui voteriez‑vous&nbsp;?</p>
+  <form id="voteForm">
+    <!-- Centre / Ex‑macronie -->
+    <div class="candidate"><input type="radio" name="candidate" id="philippe" value="Édouard Philippe"><label for="philippe">Édouard&nbsp;Philippe</label></div>
+    <div class="candidate"><input type="radio" name="candidate" id="attal" value="Gabriel Attal"><label for="attal">Gabriel&nbsp;Attal</label></div>
+    <div class="candidate"><input type="radio" name="candidate" id="lemaire" value="Bruno Le Maire"><label for="lemaire">Bruno&nbsp;Le&nbsp;Maire</label></div>
+    <div class="candidate"><input type="radio" name="candidate" id="darmanin" value="Gérald Darmanin"><label for="darmanin">Gérald&nbsp;Darmanin</label></div>
+    <div class="candidate"><input type="radio" name="candidate" id="bayrou" value="François Bayrou"><label for="bayrou">François&nbsp;Bayrou</label></div>
+
+    <!-- Droite / RN / Souverainistes -->
+    <div class="candidate"><input type="radio" name="candidate" id="lepen" value="Marine Le Pen"><label for="lepen">Marine&nbsp;Le&nbsp;Pen</label></div>
+    <div class="candidate"><input type="radio" name="candidate" id="bardella" value="Jordan Bardella"><label for="bardella">Jordan&nbsp;Bardella</label></div>
+    <div class="candidate"><input type="radio" name="candidate" id="zemmour" value="Éric Zemmour"><label for="zemmour">Éric&nbsp;Zemmour</label></div>
+    <div class="candidate"><input type="radio" name="candidate" id="dupont" value="Nicolas Dupont-Aignan"><label for="dupont">Nicolas&nbsp;Dupont‑Aignan</label></div>
+
+    <!-- Les Républicains -->
+    <div class="candidate"><input type="radio" name="candidate" id="retailleau" value="Bruno Retailleau"><label for="retailleau">Bruno&nbsp;Retailleau</label></div>
+    <div class="candidate"><input type="radio" name="candidate" id="bertrand" value="Xavier Bertrand"><label for="bertrand">Xavier&nbsp;Bertrand</label></div>
+    <div class="candidate"><input type="radio" name="candidate" id="wauquiez" value="Laurent Wauquiez"><label for="wauquiez">Laurent&nbsp;Wauquiez</label></div>
+    <div class="candidate"><input type="radio" name="candidate" id="pecresse" value="Valérie Pécresse"><label for="pecresse">Valérie&nbsp;Pécresse</label></div>
+
+    <!-- Écologistes -->
+    <div class="candidate"><input type="radio" name="candidate" id="tondelier" value="Marine Tondelier"><label for="tondelier">Marine&nbsp;Tondelier</label></div>
+    <div class="candidate"><input type="radio" name="candidate" id="rousseau" value="Sandrine Rousseau"><label for="rousseau">Sandrine&nbsp;Rousseau</label></div>
+    <div class="candidate"><input type="radio" name="candidate" id="jadot" value="Yannick Jadot"><label for="jadot">Yannick&nbsp;Jadot</label></div>
+    <div class="candidate"><input type="radio" name="candidate" id="batho" value="Delphine Batho"><label for="batho">Delphine&nbsp;Batho</label></div>
+
+    <!-- Gauche / LFI / PS -->
+    <div class="candidate"><input type="radio" name="candidate" id="autain" value="Clémentine Autain"><label for="autain">Clémentine&nbsp;Autain</label></div>
+    <div class="candidate"><input type="radio" name="candidate" id="ruffin" value="François Ruffin"><label for="ruffin">François&nbsp;Ruffin</label></div>
+    <div class="candidate"><input type="radio" name="candidate" id="melenchon" value="Jean-Luc Mélenchon"><label for="melenchon">Jean‑Luc&nbsp;Mélenchon</label></div>
+    <div class="candidate"><input type="radio" name="candidate" id="faure" value="Olivier Faure"><label for="faure">Olivier&nbsp;Faure</label></div>
+    <div class="candidate"><input type="radio" name="candidate" id="hollande" value="François Hollande"><label for="hollande">François&nbsp;Hollande</label></div>
+    <div class="candidate"><input type="radio" name="candidate" id="royal" value="Ségolène Royal"><label for="royal">Ségolène&nbsp;Royal</label></div>
+
+    <!-- Extrême gauche / contestation -->
+    <div class="candidate"><input type="radio" name="candidate" id="arthaud" value="Nathalie Arthaud"><label for="arthaud">Nathalie&nbsp;Arthaud</label></div>
+    <div class="candidate"><input type="radio" name="candidate" id="poutou" value="Philippe Poutou"><label for="poutou">Philippe&nbsp;Poutou</label></div>
+
+    <!-- Options additionnelles -->
+    <div class="candidate"><input type="radio" name="candidate" id="blanc" value="Vote blanc"><label for="blanc">Vote&nbsp;blanc</label></div>
+    <div class="candidate"><input type="radio" name="candidate" id="indecis" value="Indécis"><label for="indecis">Indécis</label></div>
+    <div class="candidate"><input type="radio" name="candidate" id="nevotera" value="Ne votera pas"><label for="nevotera">Ne&nbsp;votera&nbsp;pas</label></div>
+
+    <button type="button" id="voteButton" disabled>Valider mon vote</button>
+  </form>
+
+  <div id="result"></div>
+  <p class="disclaimer">Ces résultats reflètent uniquement les votes des utilisateurs de cette plateforme et n’ont pas de valeur de sondage officiel.</p>
+
+  <script>
+    const form = document.getElementById('voteForm');
+    const voteButton = document.getElementById('voteButton');
+    const resultDiv = document.getElementById('result');
+
+    // Activer le bouton quand un choix est sélectionné
+    form.addEventListener('change', () => {
+      voteButton.disabled = false;
+    });
+
+    // Gérer le vote
+    voteButton.addEventListener('click', () => {
+      const selected = form.elements['candidate'].value;
+      if (!selected) return;
+
+      // Enregistrer en localStorage pour empêcher plusieurs votes
+      const voted = localStorage.getItem('hasVoted');
+      if (voted) {
+        resultDiv.textContent = 'Vous avez déjà voté. Merci !';
+        return;
+      }
+      localStorage.setItem('hasVoted', 'true');
+
+      // Stocker le choix localement (optionnel)
+      localStorage.setItem('voteChoice', selected);
+
+      resultDiv.textContent = `Merci d'avoir voté pour: ${selected}.`;
+      voteButton.disabled = true;
+    });
+  </script>
+</body>
+</html>
