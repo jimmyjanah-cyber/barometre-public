@@ -108,21 +108,30 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Clic sur "Valider mon vote"
-  voteButton.addEventListener("click", async () => {
-    if (localStorage.getItem("hasVoted") === "true") return;
+voteButton.addEventListener("click", async () => {
+  if (localStorage.getItem("hasVoted") === "true") return;
 
-    const selected = document.querySelector('input[name="candidate"]:checked');
-    if (!selected) {
-      alert("Choisis un candidat");
-      return;
-    }
+  const selected = document.querySelector('input[name="candidate"]:checked');
+  if (!selected) {
+    alert("Choisis un candidat");
+    return;
+  }
 
-    await envoyerVote(selected.value);
-    localStorage.setItem("hasVoted", "true");
-    voteButton.disabled = true;
-    chargerResultats();
-  });
+  const ok = await envoyerVote(selected.value);
 
+  // ❌ si Supabase refuse → on ne bloque PAS
+  if (!ok) {
+    alert("Le vote n’a pas été enregistré. Réessaie.");
+    return;
+  }
+
+  // ✅ seulement si Supabase a accepté
+  localStorage.setItem("hasVoted", "true");
+  voteButton.disabled = true;
+  resultDiv.innerHTML = "<strong>Merci pour votre vote.</strong>";
+
+  chargerResultats();
+});
   chargerResultats();
 });
 
