@@ -5,13 +5,8 @@
     <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Baromètre Présidentiel 2027</title>
-    
-    <!-- SDK Supabase (Indispensable) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-    <!-- CODE GOOGLE ADSENSE -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2553488319378463" crossorigin="anonymous"></script>
-
     <style>
         :root { --primary: #1a3a5f; --accent: #e63946; --bg: #f0f2f5; --card: #ffffff; }
         body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--bg); margin: 0; padding: 10px; color: #333; }
@@ -22,7 +17,6 @@
         .candidate-card { border: 2px solid #eee; padding: 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; }
         .candidate-card input { margin-right: 12px; }
         #btn-vote { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 25px; }
-        #btn-vote:disabled { background: #ccc; }
         .results-box { background: white; padding: 25px; border-radius: 12px; margin-top: 30px; }
         .bar-container { margin-bottom: 15px; }
         .bar-info { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: 600; }
@@ -33,13 +27,8 @@
     </style>
 </head>
 <body>
-
 <div class="container">
-    <header>
-        <h1>Baromètre Présidentiel 2027</h1>
-        <p>Sondage Citoyen Indépendant</p>
-    </header>
-
+    <header><h1>Baromètre Présidentiel 2027</h1><p>Sondage Citoyen Indépendant</p></header>
     <div id="vote-area">
         <div class="voting-section">
             <h2 style="margin-top:0">Pour qui voteriez-vous aujourd'hui ?</h2>
@@ -47,20 +36,14 @@
             <button id="btn-vote">Confirmer mon vote</button>
         </div>
     </div>
-
-    <div id="thanks-area" class="voting-section hidden success-msg">
-        ✅ Merci ! Votre vote a été enregistré.
-    </div>
-
-    <div class="results-box">
-        <h2>Classement en temps réel</h2>
-        <div id="results-render">Chargement des résultats...</div>
-    </div>
+    <div id="thanks-area" class="voting-section hidden success-msg">✅ Merci ! Votre vote a été enregistré.</div>
+    <div class="results-box"><h2>Classement en temps réel</h2><div id="results-render">Chargement des résultats...</div></div>
 </div>
 
 <script>
+    // --- REMPLACE LA CLÉ CI-DESSOUS PAR LA LONGUE CLÉ (eyJ...) ---
     const SB_URL = "https://twdemyzpdeelatouccz.supabase.co";
-    const SB_KEY = "sb_publishable_s2WGwh1hX88XYRokc4E01w_axS9n7ad";
+    const SB_KEY = "COLLE_ICI_LA_LONGUE_CLE_ANON"; 
     
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
@@ -93,8 +76,10 @@
 
     async function checkVoteStatus() {
         if (localStorage.getItem('voted2027')) { hideVoting(); return; }
-        const { data } = await _supabase.from('votes').select('id').eq('voter_fingerprint', fingerprint).single();
-        if (data) { localStorage.setItem('voted2027', 'true'); hideVoting(); }
+        try {
+            const { data } = await _supabase.from('votes').select('id').eq('voter_fingerprint', fingerprint).single();
+            if (data) { localStorage.setItem('voted2027', 'true'); hideVoting(); }
+        } catch(e) { console.log("Prêt pour un premier vote"); }
     }
 
     function hideVoting() {
@@ -107,24 +92,15 @@
         if (!choice) return alert("Sélectionnez un candidat !");
         const btn = document.getElementById('btn-vote');
         btn.disabled = true;
-        btn.textContent = "Sécurisation...";
+        btn.textContent = "Enregistrement...";
         const { error } = await _supabase.from('votes').insert([{ candidate: choice.value, voter_fingerprint: fingerprint }]);
-        if (error) { 
-            alert("Erreur Supabase : " + error.message); 
-            btn.disabled = false; 
-        } else { 
-            localStorage.setItem('voted2027', 'true'); 
-            hideVoting(); 
-            loadResults(); 
-        }
+        if (error) { alert("Erreur : " + error.message); btn.disabled = false; }
+        else { localStorage.setItem('voted2027', 'true'); hideVoting(); loadResults(); }
     });
 
     async function loadResults() {
         const { data, error } = await _supabase.from('votes').select('candidate');
-        if (error) {
-            document.getElementById('results-render').innerHTML = "Erreur Supabase : " + error.message;
-            return;
-        }
+        if (error) { document.getElementById('results-render').innerHTML = "Erreur Supabase : " + error.message; return; }
         const total = data.length;
         const stats = {};
         data.forEach(v => stats[v.candidate] = (stats[v.candidate] || 0) + 1);
