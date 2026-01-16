@@ -1,258 +1,309 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Baromètre Public</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baromètre Présidentiel 2027</title>
+    
+    <!-- SDK Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <style>
-    body { font-family: Arial, sans-serif; max-width: 700px; margin: auto; padding: 20px; background: #f5f5f5; }
-    h1 { text-align: center; }
-    form { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 12px rgba(0,0,0,0.08); }
-    .candidate { margin: 6px 0; }
-    label { margin-left: 6px; cursor: pointer; }
+    <!-- GOOGLE ADSENSE (À activer quand tu auras ton code) -->
+    <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXX" crossorigin="anonymous"></script> -->
 
-    button {
-      margin-top: 18px; padding: 12px 18px; font-size: 16px; cursor: pointer;
-      background: #0b66ff; color: #fff; border: none; border-radius: 8px; width: 100%;
-    }
-    button:disabled { background: #cfcfcf; cursor: not-allowed; }
+    <style>
+        :root {
+            --primary: #1a3a5f;
+            --accent: #e63946;
+            --bg: #f0f2f5;
+            --card: #ffffff;
+        }
 
-    #statusBox, #result {
-      margin-top: 14px; padding: 14px; background: white; border-radius: 10px;
-      box-shadow: 0 0 12px rgba(0,0,0,0.06);
-    }
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 10px;
+            color: #333;
+        }
 
-    .hidden { display: none; }
-    .ok { color: #1b7f2a; font-weight: bold; }
-    .warn { color: #b36b00; font-weight: bold; }
-    .err { color: #b00020; font-weight: bold; }
-    .vote-bar { background: #efefef; border-radius: 8px; margin-bottom: 10px; padding: 10px; display:flex; justify-content:space-between; }
-    .disclaimer { font-size: 0.9em; margin-top: 10px; color: #666; text-align: center; }
-  </style>
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            background: var(--primary);
+            color: white;
+            padding: 30px 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* Styles Publicité */
+        .ad-container {
+            margin: 15px 0;
+            background: #ddd;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #666;
+            overflow: hidden;
+        }
+
+        .voting-section {
+            background: var(--card);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .candidate-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .candidate-card {
+            border: 2px solid #eee;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .candidate-card:hover {
+            border-color: var(--primary);
+            background: #f8fbff;
+        }
+
+        .candidate-card input {
+            margin-right: 12px;
+            transform: scale(1.2);
+        }
+
+        #btn-vote {
+            width: 100%;
+            padding: 18px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 25px;
+        }
+
+        #btn-vote:disabled {
+            background: #ccc;
+        }
+
+        /* Résultats */
+        .results-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .bar-container {
+            margin-bottom: 15px;
+        }
+
+        .bar-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .bar-outer {
+            background: #eee;
+            height: 18px;
+            border-radius: 9px;
+            overflow: hidden;
+        }
+
+        .bar-inner {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #4a90e2);
+            width: 0%;
+            transition: width 1s ease-in-out;
+        }
+
+        .hidden { display: none; }
+        .success-msg {
+            text-align: center;
+            color: #2d6a4f;
+            font-weight: bold;
+            font-size: 1.2em;
+            padding: 20px;
+        }
+    </style>
 </head>
-
 <body>
-  <h1>Baromètre Public</h1>
 
-  <div id="voteContainer">
-    <p>Si l’élection présidentielle avait lieu aujourd’hui, pour qui voteriez-vous&nbsp;?</p>
+<div class="container">
+    
+    <!-- PUB HAUT -->
+    <div class="ad-container">
+        <!-- Insère ton code AdSense ici -->
+        Publicité
+    </div>
 
-    <form id="voteForm">
-      <!-- Centre / Ex-macronie -->
-      <div class="candidate"><input type="radio" name="candidate" id="philippe" value="Édouard Philippe"><label for="philippe">Édouard Philippe</label></div>
-      <div class="candidate"><input type="radio" name="candidate" id="attal" value="Gabriel Attal"><label for="attal">Gabriel Attal</label></div>
-      <div class="candidate"><input type="radio" name="candidate" id="lemaire" value="Bruno Le Maire"><label for="lemaire">Bruno Le Maire</label></div>
-      <div class="candidate"><input type="radio" name="candidate" id="darmanin" value="Gérald Darmanin"><label for="darmanin">Gérald Darmanin</label></div>
-      <div class="candidate"><input type="radio" name="candidate" id="bayrou" value="François Bayrou"><label for="bayrou">François Bayrou</label></div>
+    <header>
+        <h1>Baromètre Présidentiel 2027</h1>
+        <p>Sondage Citoyen Indépendant</p>
+    </header>
 
-      <!-- Droite / RN / Souverainistes -->
-      <div class="candidate"><input type="radio" name="candidate" id="lepen" value="Marine Le Pen"><label for="lepen">Marine Le Pen</label></div>
-      <div class="candidate"><input type="radio" name="candidate" id="bardella" value="Jordan Bardella"><label for="bardella">Jordan Bardella</label></div>
-      <div class="candidate"><input type="radio" name="candidate" id="zemmour" value="Éric Zemmour"><label for="zemmour">Éric Zemmour</label></div>
-      <div class="candidate"><input type="radio" name="candidate" id="dupont" value="Nicolas Dupont-Aignan"><label for="dupont">Nicolas Dupont-Aignan</label></div>
+    <div id="vote-area">
+        <div class="voting-section">
+            <h2 style="margin-top:0">Pour qui voteriez-vous aujourd'hui ?</h2>
+            <div class="candidate-grid" id="candidates-list">
+                <!-- Rempli par JS -->
+            </div>
+            <button id="btn-vote">Confirmer mon vote</button>
+        </div>
+    </div>
 
-      <!-- Les Républicains -->
-      <div class="candidate"><input type="radio" name="candidate" id="retailleau" value="Bruno Retailleau"><label for="retailleau">Bruno Retailleau</label></div>
-      <div class="candidate"><input type="radio" name="candidate" id="bertrand" value="Xavier Bertrand"><label for="bertrand">Xavier Bertrand</label></div>
-      <div class="candidate"><input type="radio" name="candidate" id="wauquiez" value="Laurent Wauquiez"><label for="wauquiez">Laurent Wauquiez</label></div>
-      <div class="candidate"><input type="radio" name="candidate" id="pecresse" value="Valérie Pécresse"><label for="pecresse">Valérie Pécresse</label></div>
+    <div id="thanks-area" class="voting-section hidden success-msg">
+        ✅ Merci ! Votre vote a été pris en compte pour le classement national.
+    </div>
 
-      <!-- Écologistes -->
-      <div class="candidate"><input type="radio" name="candidate" id="tondelier" value="Marine Tondelier"><label for="tondelier">Marine Tondelier</label></div>
-      <div class="candidate"><input type="radio" name="candidate" id="rousseau" value="Sandrine Rousseau"><label for="rousseau">Sandrine Rousseau</label></div>
-      <div class="candidate"><input type="radio" name="candidate" id="jadot" value="Yannick Jadot"><label for="jadot">Yannick Jadot</label></div>
-      <div class="candidate"><input type="radio" name="candidate" id="batho" value="Delphine Batho"><label for="batho">Delphine Batho</label></div>
+    <!-- PUB MILIEU -->
+    <div class="ad-container">
+        Publicité
+    </div>
 
-      <!-- Gauche / LFI / PS -->
-      <div class="candidate"><input type="radio" name="candidate" id="autain" value="Clémentine Autain"><label for="autain">Clémentine Autain</label></div>
-      <div class="candidate"><input type="radio" name="candidate" id="ruffin" value="François Ruffin"><label for="ruffin">François Ruffin</label></div>
-      <div class="candidate"><input type="radio" name="candidate" id="melenchon" value="Jean-Luc Mélenchon"><label for="melenchon">Jean-Luc Mélenchon</label></div>
-      <div class="candidate"><input type="radio" name="candidate" id="faure" value="Olivier Faure"><label for="faure">Olivier Faure</label></div>
-      <div class="candidate"><input type="radio" name="candidate" id="hollande" value="François Hollande"><label for="hollande">François Hollande</label></div>
-      <div class="candidate"><input type="radio" name="candidate" id="royal" value="Ségolène Royal"><label for="royal">Ségolène Royal</label></div>
+    <div class="results-box">
+        <h2>Classement en temps réel</h2>
+        <div id="results-render">Chargement des résultats...</div>
+    </div>
 
-      <!-- Extrême gauche -->
-      <div class="candidate"><input type="radio" name="candidate" id="arthaud" value="Nathalie Arthaud"><label for="arthaud">Nathalie Arthaud</label></div>
-      <div class="candidate"><input type="radio" name="candidate" id="poutou" value="Philippe Poutou"><label for="poutou">Philippe Poutou</label></div>
+    <!-- PUB BAS -->
+    <div class="ad-container">
+        Publicité
+    </div>
 
-      <!-- Options -->
-      <div class="candidate"><input type="radio" name="candidate" id="blanc" value="Vote blanc"><label for="blanc">Vote blanc</label></div>
-      <div class="candidate"><input type="radio" name="candidate" id="indecis" value="Indécis"><label for="indecis">Indécis</label></div>
-      <div class="candidate"><input type="radio" name="candidate" id="nevotera" value="Ne votera pas"><label for="nevotera">Ne votera pas</label></div>
+    <p style="text-align:center; color:#888; font-size:12px;">
+        Plateforme sécurisée - Un seul vote par appareil autorisé.
+    </p>
+</div>
 
-      <button type="button" id="voteButton" disabled>Valider mon vote</button>
-    </form>
+<script>
+    // Config Supabase
+    const SB_URL = "https://twdemyzpdeelatouccz.supabase.co";
+    const SB_KEY = "sb_publishable_s2WGwh1hX88XYRokc4E01w_axS9n7ad";
+    const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-    <div id="statusBox" class="hidden"></div>
-  </div>
+    const candidates = [
+        "Édouard PHILIPPE", "Marine TONDELIER", "Jordan BARDELLA", "Marine LE PEN", 
+        "Gabriel ATTAL", "Bruno RETAILLEAU", "Éric CIOTTI", "Bruno LE MAIRE", 
+        "Xavier BERTRAND", "Gérald DARMANIN", "Sébastien LECORNU", "Jean-Luc MÉLENCHON", 
+        "Philippe POUTOU", "Fabien ROUSSEL", "Olivier FAURE", "Raphaël GLUCKSMANN", 
+        "Yannick JADOT", "Sandrine ROUSSEAU", "Ségolène ROYAL", "François HOLLANDE", 
+        "Bernard CAZENEUVE", "Clémentine AUTAIN", "Nicolas DUPONT-AIGNAN", 
+        "François ASSELINEAU", "Dominique DE VILLEPIN", "Marion MARÉCHAL", 
+        "Philippe de VILLIERS", "Éric Zemmour", "Vote blanc", "Indécis"
+    ];
 
-  <div id="result">Chargement des résultats…</div>
+    // Génère une signature unique pour bloquer les doublons
+    const fingerprint = btoa(navigator.userAgent + navigator.language + screen.width).slice(0, 30);
 
-  <p class="disclaimer">
-    Ces résultats reflètent uniquement les votes des utilisateurs de cette plateforme.
-    Ils n’ont aucune valeur de sondage officiel, prédictive ou statistique.
-  </p>
+    window.onload = async () => {
+        renderCandidates();
+        await checkVoteStatus();
+        loadResults();
+    };
 
-  <script>
-    /* =========================
-       1) CONFIG SUPABASE
-       Remplace ces 2 lignes !
-    ========================= */
-    const SUPABASE_URL = "COLLE_ICI_TON_PROJECT_URL";      // ex: https://xxxx.supabase.co
-    const SUPABASE_KEY = "COLLE_ICI_TA_PUBLISHABLE_KEY";   // ex: sb_publishable_...
-
-    /* =========================
-       2) SAFE STORAGE
-       localStorage + fallback cookie (mode privé)
-    ========================= */
-    function getHasVoted() {
-      try { return localStorage.getItem("hasVoted") === "true"; }
-      catch { return document.cookie.includes("hasVoted=true"); }
-    }
-    function setHasVotedTrue() {
-      try { localStorage.setItem("hasVoted", "true"); }
-      catch { document.cookie = "hasVoted=true; max-age=" + (7*24*3600) + "; path=/"; }
-    }
-    function clearHasVoted() {
-      try { localStorage.removeItem("hasVoted"); } catch {}
-      document.cookie = "hasVoted=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
-    }
-
-    /* =========================
-       3) UI helpers
-    ========================= */
-    const voteForm = document.getElementById("voteForm");
-    const voteButton = document.getElementById("voteButton");
-    const voteContainer = document.getElementById("voteContainer");
-    const statusBox = document.getElementById("statusBox");
-    const resultDiv = document.getElementById("result");
-
-    function showStatus(type, text) {
-      statusBox.classList.remove("hidden");
-      statusBox.innerHTML = `<span class="${type}">${text}</span>`;
-    }
-    function hideStatus() {
-      statusBox.classList.add("hidden");
-      statusBox.innerHTML = "";
+    function renderCandidates() {
+        const list = document.getElementById('candidates-list');
+        candidates.forEach(name => {
+            const id = name.replace(/\s+/g, '-').toLowerCase();
+            list.innerHTML += `
+                <label class="candidate-card" for="${id}">
+                    <input type="radio" name="candidate" id="${id}" value="${name}">
+                    <span>${name}</span>
+                </label>
+            `;
+        });
     }
 
-    function lockVoteUI() {
-      voteContainer.classList.add("hidden");
-      showStatus("ok", "Merci ! Votre vote a été enregistré.");
-    }
-    function unlockVoteUI() {
-      voteContainer.classList.remove("hidden");
-      hideStatus();
+    async function checkVoteStatus() {
+        if (localStorage.getItem('voted2027')) {
+            hideVoting();
+            return;
+        }
+        // Vérifie en base de données si l'empreinte existe
+        const { data } = await _supabase.from('votes').select('id').eq('voter_fingerprint', fingerprint).single();
+        if (data) {
+            localStorage.setItem('voted2027', 'true');
+            hideVoting();
+        }
     }
 
-    /* =========================
-       4) SUPABASE calls
-    ========================= */
-    async function supabaseInsert(candidate) {
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/votes`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": SUPABASE_KEY,
-          "Authorization": `Bearer ${SUPABASE_KEY}`,
-          "Prefer": "return=representation"
-        },
-        body: JSON.stringify({ candidate })
-      });
-
-      if (!response.ok) {
-        const errText = await response.text();
-        return { ok: false, err: errText, status: response.status };
-      }
-      return { ok: true, err: null, status: response.status };
+    function hideVoting() {
+        document.getElementById('vote-area').classList.add('hidden');
+        document.getElementById('thanks-area').classList.remove('hidden');
     }
+
+    document.getElementById('btn-vote').addEventListener('click', async () => {
+        const choice = document.querySelector('input[name="candidate"]:checked');
+        if (!choice) return alert("Sélectionnez un candidat !");
+
+        const btn = document.getElementById('btn-vote');
+        btn.disabled = true;
+        btn.textContent = "Sécurisation du vote...";
+
+        const { error } = await _supabase.from('votes').insert([
+            { candidate: choice.value, voter_fingerprint: fingerprint }
+        ]);
+
+        if (error) {
+            if (error.code === '23505') alert("Vous avez déjà voté !");
+            else alert("Erreur technique. Réessayez.");
+            btn.disabled = false;
+        } else {
+            localStorage.setItem('voted2027', 'true');
+            hideVoting();
+            loadResults();
+        }
+    });
 
     async function loadResults() {
-      try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/votes?select=candidate`, {
-          headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+        const { data, error } = await _supabase.from('votes').select('candidate');
+        if (error) return;
+
+        const total = data.length;
+        const stats = {};
+        data.forEach(v => stats[v.candidate] = (stats[v.candidate] || 0) + 1);
+
+        const sorted = Object.entries(stats).sort((a, b) => b[1] - a[1]);
+        const container = document.getElementById('results-render');
+        container.innerHTML = "";
+
+        sorted.forEach(([name, count]) => {
+            const pc = ((count / total) * 100).toFixed(1);
+            container.innerHTML += `
+                <div class="bar-container">
+                    <div class="bar-info"><span>${name}</span><span>${pc}% (${count} voix)</span></div>
+                    <div class="bar-outer"><div class="bar-inner" style="width:${pc}%"></div></div>
+                </div>
+            `;
         });
-
-        if (!res.ok) {
-          const t = await res.text();
-          resultDiv.innerHTML = `<span class="err">Erreur résultats (${res.status}) : ${t}</span>`;
-          return;
-        }
-
-        const data = await res.json();
-        const counts = {};
-        data.forEach(v => {
-          const name = v.candidate || "Inconnu";
-          counts[name] = (counts[name] || 0) + 1;
-        });
-
-        const totalVotes = data.length;
-        let html = `<h3>Résultats en direct <span style="font-weight:normal;color:#666">(total : ${totalVotes})</span></h3>`;
-
-        Object.entries(counts)
-          .sort((a,b) => b[1] - a[1])
-          .forEach(([name, count]) => {
-            html += `<div class="vote-bar"><span>${name}</span><span><b>${count}</b> voix</span></div>`;
-          });
-
-        resultDiv.innerHTML = html;
-      } catch (e) {
-        resultDiv.innerHTML = `<span class="err">Erreur lors du chargement des résultats.</span>`;
-      }
     }
+</script>
 
-    /* =========================
-       5) BOOT
-    ========================= */
-    window.addEventListener("DOMContentLoaded", () => {
-      // Résultats visibles tout le temps
-      loadResults();
-
-      // Si déjà voté : cache le formulaire
-      if (getHasVoted()) lockVoteUI();
-      else unlockVoteUI();
-
-      // Activer le bouton quand on sélectionne un candidat
-      voteForm.addEventListener("change", () => {
-        if (getHasVoted()) return;
-        voteButton.disabled = false;
-      });
-
-      // Vote
-      voteButton.addEventListener("click", async () => {
-        if (getHasVoted()) return;
-
-        const selected = document.querySelector('input[name="candidate"]:checked');
-        if (!selected) {
-          alert("Merci de choisir un candidat.");
-          return;
-        }
-
-        voteButton.disabled = true;
-        const oldText = voteButton.textContent;
-        voteButton.textContent = "Envoi en cours...";
-
-        const { ok, err, status } = await supabaseInsert(selected.value);
-
-        if (!ok) {
-          // NE PAS BLOQUER si Supabase refuse
-          clearHasVoted();
-          voteButton.disabled = false;
-          voteButton.textContent = oldText;
-
-          showStatus("err", `Vote refusé par Supabase (${status}). Regarde le message ci-dessous.`);
-          // Affiche aussi l'erreur dans la zone résultats (visible)
-          resultDiv.innerHTML = `<span class="err">INSERT refusé (${status}) : ${err}</span>`;
-          return;
-        }
-
-        // Seulement si Supabase a accepté
-        setHasVotedTrue();
-        lockVoteUI();
-        await loadResults();
-      });
-    });
-  </script>
 </body>
 </html>
