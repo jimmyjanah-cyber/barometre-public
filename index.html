@@ -70,6 +70,11 @@
   <p class="disclaimer">Ces résultats reflètent uniquement les votes des utilisateurs de cette plateforme.</p>
 
   <script>
+    if (localStorage.getItem('hasVoted')) {
+  document.getElementById('voteButton').disabled = true;
+  document.getElementById('result').textContent =
+    "Vous avez déjà voté. Merci !";
+}
     </script>
 <!-- SUPABASE -->
   <script>
