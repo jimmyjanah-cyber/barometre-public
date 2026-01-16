@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="notranslate" translate="no">
 <head>
     <meta charset="UTF-8">
+    <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Baromètre Présidentiel 2027</title>
     
-    <!-- SDK Supabase -->
+    <!-- SDK Supabase (NE PAS TRADUIRE) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- CODE GOOGLE ADSENSE -->
@@ -65,70 +66,80 @@
 <script>
     const SB_URL = "https://twdemyzpdeelatouccz.supabase.co";
     const SB_KEY = "sb_publishable_s2WGwh1hX88XYRokc4E01w_axS9n7ad";
-    const _supabase = supabase.createClient(SB_URL, SB_KEY);
+    
+    // On vérifie que la bibliothèque est chargée
+    if (typeof supabase === 'undefined') {
+        document.getElementById('results-render').innerHTML = "Erreur : La bibliothèque Supabase n'est pas chargée. Vérifiez que votre navigateur ne traduit pas le code.";
+    } else {
+        const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-    const candidates = [
-        "Édouard PHILIPPE", "Marine TONDELIER", "Jordan BARDELLA", "Marine LE PEN", 
-        "Gabriel ATTAL", "Bruno RETAILLEAU", "Éric CIOTTI", "Bruno LE MAIRE", 
-        "Xavier BERTRAND", "Gérald DARMANIN", "Sébastien LECORNU", "Jean-Luc MÉLENCHON", 
-        "Philippe POUTOU", "Fabien ROUSSEL", "Olivier FAURE", "Raphaël GLUCKSMANN", 
-        "Yannick JADOT", "Sandrine ROUSSEAU", "Ségolène ROYAL", "François HOLLANDE", 
-        "Bernard CAZENEUVE", "Clémentine AUTAIN", "Nicolas DUPONT-AIGNAN", 
-        "François ASSELINEAU", "Dominique DE VILLEPIN", "Marion MARÉCHAL", 
-        "Philippe de VILLIERS", "Éric Zemmour", "Vote blanc", "Indécis"
-    ];
+        const candidates = [
+            "Édouard PHILIPPE", "Marine TONDELIER", "Jordan BARDELLA", "Marine LE PEN", 
+            "Gabriel ATTAL", "Bruno RETAILLEAU", "Éric CIOTTI", "Bruno LE MAIRE", 
+            "Xavier BERTRAND", "Gérald DARMANIN", "Sébastien LECORNU", "Jean-Luc MÉLENCHON", 
+            "Philippe POUTOU", "Fabien ROUSSEL", "Olivier FAURE", "Raphaël GLUCKSMANN", 
+            "Yannick JADOT", "Sandrine ROUSSEAU", "Ségolène ROYAL", "François HOLLANDE", 
+            "Bernard CAZENEUVE", "Clémentine AUTAIN", "Nicolas DUPONT-AIGNAN", 
+            "François ASSELINEAU", "Dominique DE VILLEPIN", "Marion MARÉCHAL", 
+            "Philippe de VILLIERS", "Éric Zemmour", "Vote blanc", "Indécis"
+        ];
 
-    const fingerprint = btoa(navigator.userAgent + navigator.language + screen.width).slice(0, 30);
+        const fingerprint = btoa(navigator.userAgent + navigator.language + screen.width).slice(0, 30);
 
-    window.onload = async () => {
-        renderCandidates();
-        await checkVoteStatus();
-        loadResults();
-    };
+        window.onload = async () => {
+            renderCandidates();
+            await checkVoteStatus();
+            loadResults();
+        };
 
-    function renderCandidates() {
-        const list = document.getElementById('candidates-list');
-        candidates.forEach(name => {
-            const id = name.replace(/\s+/g, '-').toLowerCase();
-            list.innerHTML += `<label class="candidate-card" for="${id}"><input type="radio" name="candidate" id="${id}" value="${name}"><span>${name}</span></label>`;
+        function renderCandidates() {
+            const list = document.getElementById('candidates-list');
+            if(!list) return;
+            candidates.forEach(name => {
+                const id = name.replace(/\s+/g, '-').toLowerCase();
+                list.innerHTML += `<label class="candidate-card" for="${id}"><input type="radio" name="candidate" id="${id}" value="${name}"><span>${name}</span></label>`;
+            });
+        }
+
+        async function checkVoteStatus() {
+            if (localStorage.getItem('voted2027')) { hideVoting(); return; }
+            const { data } = await _supabase.from('votes').select('id').eq('voter_fingerprint', fingerprint).single();
+            if (data) { localStorage.setItem('voted2027', 'true'); hideVoting(); }
+        }
+
+        function hideVoting() {
+            document.getElementById('vote-area').classList.add('hidden');
+            document.getElementById('thanks-area').classList.remove('hidden');
+        }
+
+        document.getElementById('btn-vote').addEventListener('click', async () => {
+            const choice = document.querySelector('input[name="candidate"]:checked');
+            if (!choice) return alert("Sélectionnez un candidat !");
+            const btn = document.getElementById('btn-vote');
+            btn.disabled = true;
+            btn.textContent = "Sécurisation...";
+            const { error } = await _supabase.from('votes').insert([{ candidate: choice.value, voter_fingerprint: fingerprint }]);
+            if (error) { alert("Déjà voté !"); btn.disabled = false; }
+            else { localStorage.setItem('voted2027', 'true'); hideVoting(); loadResults(); }
         });
-    }
 
-    async function checkVoteStatus() {
-        if (localStorage.getItem('voted2027')) { hideVoting(); return; }
-        const { data } = await _supabase.from('votes').select('id').eq('voter_fingerprint', fingerprint).single();
-        if (data) { localStorage.setItem('voted2027', 'true'); hideVoting(); }
-    }
-
-    function hideVoting() {
-        document.getElementById('vote-area').classList.add('hidden');
-        document.getElementById('thanks-area').classList.remove('hidden');
-    }
-
-    document.getElementById('btn-vote').addEventListener('click', async () => {
-        const choice = document.querySelector('input[name="candidate"]:checked');
-        if (!choice) return alert("Sélectionnez un candidat !");
-        const btn = document.getElementById('btn-vote');
-        btn.disabled = true;
-        btn.textContent = "Sécurisation...";
-        const { error } = await _supabase.from('votes').insert([{ candidate: choice.value, voter_fingerprint: fingerprint }]);
-        if (error) { alert("Déjà voté !"); btn.disabled = false; }
-        else { localStorage.setItem('voted2027', 'true'); hideVoting(); loadResults(); }
-    });
-
-    async function loadResults() {
-        const { data, error } = await _supabase.from('votes').select('candidate');
-        if (error) return;
-        const total = data.length;
-        const stats = {};
-        data.forEach(v => stats[v.candidate] = (stats[v.candidate] || 0) + 1);
-        const sorted = Object.entries(stats).sort((a, b) => b[1] - a[1]);
-        const container = document.getElementById('results-render');
-        container.innerHTML = "";
-        sorted.forEach(([name, count]) => {
-            const pc = ((count / total) * 100).toFixed(1);
-            container.innerHTML += `<div class="bar-container"><div class="bar-info"><span>${name}</span><span>${pc}% (${count} voix)</span></div><div class="bar-outer"><div class="bar-inner" style="width:${pc}%"></div></div></div>`;
-        });
+        async function loadResults() {
+            const { data, error } = await _supabase.from('votes').select('candidate');
+            if (error) {
+                document.getElementById('results-render').innerHTML = "Erreur lors du chargement des résultats.";
+                return;
+            }
+            const total = data.length;
+            const stats = {};
+            data.forEach(v => stats[v.candidate] = (stats[v.candidate] || 0) + 1);
+            const sorted = Object.entries(stats).sort((a, b) => b[1] - a[1]);
+            const container = document.getElementById('results-render');
+            container.innerHTML = "";
+            sorted.forEach(([name, count]) => {
+                const pc = ((count / total) * 100).toFixed(1);
+                container.innerHTML += `<div class="bar-container"><div class="bar-info"><span>${name}</span><span>${pc}% (${count} voix)</span></div><div class="bar-outer"><div class="bar-inner" style="width:${pc}%"></div></div></div>`;
+            });
+        }
     }
 </script>
 
