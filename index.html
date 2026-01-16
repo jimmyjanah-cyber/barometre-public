@@ -77,15 +77,24 @@
   const SUPABASE_KEY = "sb_publishable_s2WGwh1hX88XYRokc4E01w_axS9n7ad";
 
   async function envoyerVote(candidate) {
-    await fetch(`${SUPABASE_URL}/rest/v1/votes`, {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/votes`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "apikey": SUPABASE_KEY,
-        "Authorization": `Bearer ${SUPABASE_KEY}`
+        "Authorization": `Bearer ${SUPABASE_KEY}`,
+        "Prefer": "return=minimal"
       },
       body: JSON.stringify({ candidate })
     });
+
+    if (!r.ok) {
+      const err = await r.text();
+      alert("Erreur Supabase : " + err);
+      localStorage.removeItem("hasVoted");
+      return;
+    }
+
     chargerResultats();
   }
 
@@ -96,17 +105,21 @@
         "Authorization": `Bearer ${SUPABASE_KEY}`
       }
     });
-    const data = await r.json();
 
+    const data = await r.json();
     const counts = {};
+
     data.forEach(v => {
       counts[v.candidate] = (counts[v.candidate] || 0) + 1;
     });
 
     let html = "<h2>Résultats</h2>";
-    for (const c in counts) {
-      html += `<p><strong>${c}</strong> : ${counts[c]}</p>`;
-    }
+    Object.entries(counts)
+      .sort((a,b)=>b[1]-a[1])
+      .forEach(([c,n]) => {
+        html += `<p><strong>${c}</strong> : ${n}</p>`;
+      });
+
     html += `<p style="font-size:13px;color:#666">
       Ces résultats reflètent uniquement les votes des utilisateurs de cette plateforme.
     </p>`;
@@ -120,35 +133,32 @@
       div.id = "resultsBox";
       document.body.appendChild(div);
     }
-document.getElementById("voteButton").addEventListener("click", async (e) => {
-  e.preventDefault();
 
-  // 🔒 Anti double vote
-  if (localStorage.getItem("hasVoted") === "true") {
-    alert("Vous avez déjà voté. Merci !");
-    return;
-  }
+    if (localStorage.getItem("hasVoted") === "true") {
+      document.getElementById("voteButton").disabled = true;
+    }
 
-  const c = document.querySelector('input[name="candidate"]:checked');
-  if (!c) {
-    alert("Choisis un candidat");
-    return;
-  }
+    document.getElementById("voteButton").addEventListener("click", async (e) => {
+      e.preventDefault();
 
-  // On verrouille AVANT l'envoi
-  localStorage.setItem("hasVoted", "true");
+      if (localStorage.getItem("hasVoted") === "true") {
+        alert("Vous avez déjà voté. Merci !");
+        return;
+      }
 
-  await envoyerVote(c.value);
+      const c = document.querySelector('input[name="candidate"]:checked');
+      if (!c) {
+        alert("Choisis un candidat");
+        return;
+      }
 
-  document.getElementById("voteButton").disabled = true;
-});
-
+      localStorage.setItem("hasVoted", "true");
+      await envoyerVote(c.value);
+      document.getElementById("voteButton").disabled = true;
+    });
 
     chargerResultats();
   });
-if (localStorage.getItem("hasVoted") === "true") {
-  document.getElementById("voteButton").disabled = true;
-}
 </script>
 <body>
 </html>
