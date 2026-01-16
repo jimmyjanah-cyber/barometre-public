@@ -272,7 +272,7 @@
 
         if (error) {
             if (error.code === '23505') alert("Vous avez déjà voté !");
-            else alert("Erreur technique. Réessayez.");
+            else alert("Erreur Supabase : " + error.message);
             btn.disabled = false;
         } else {
             localStorage.setItem('voted2027', 'true');
