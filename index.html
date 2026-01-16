@@ -11,33 +11,73 @@
     form { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
     .candidate { margin: 6px 0; }
     label { margin-left: 4px; cursor: pointer; }
-    button { margin-top: 20px; padding: 10px 20px; font-size: 16px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 4px; }
-    button:disabled { background-color: #ccc; cursor: not-allowed; }
-    #result { margin-top: 20px; }
-    .vote-item { background: #eee; margin: 5px 0; padding: 10px; border-radius: 4px; display: flex; justify-content: space-between; }
-    .disclaimer { font-size: 0.9em; margin-top: 10px; color: #666; }
+    button { margin-top: 20px; padding: 10px 20px; font-size: 16px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; width: 100%; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    #result { margin-top: 20px; padding: 15px; background: white; border-radius: 8px; }
+    .vote-bar { background: #eee; border-radius: 4px; margin-bottom: 10px; padding: 8px; display: flex; justify-content: space-between; }
+    .disclaimer { font-size: 0.9em; margin-top: 10px; color: #666; text-align: center; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
 
   <h1>Baromètre Public</h1>
-  <p id="instruction">Si l’élection présidentielle avait lieu aujourd’hui, pour qui voteriez‑vous&nbsp;?</p>
-  
-  <form id="voteForm">
-    <!-- Liste Simplifiée pour l'exemple, garde tes candidats ici -->
-    <div class="candidate"><input type="radio" name="candidate" id="philippe" value="Édouard Philippe"><label for="philippe">Édouard Philippe</label></div>
-    <div class="candidate"><input type="radio" name="candidate" id="attal" value="Gabriel Attal"><label for="attal">Gabriel Attal</label></div>
-    <div class="candidate"><input type="radio" name="candidate" id="lepen" value="Marine Le Pen"><label for="lepen">Marine Le Pen</label></div>
-    <div class="candidate"><input type="radio" name="candidate" id="melenchon" value="Jean-Luc Mélenchon"><label for="melenchon">Jean-Luc Mélenchon</label></div>
-    <div class="candidate"><input type="radio" name="candidate" id="blanc" value="Vote blanc"><label for="blanc">Vote blanc</label></div>
+  <div id="voteContainer">
+    <p>Si l’élection présidentielle avait lieu aujourd’hui, pour qui voteriez‑vous&nbsp;?</p>
+    <form id="voteForm">
+      <!-- Centre / Ex‑macronie -->
+      <div class="candidate"><input type="radio" name="candidate" id="philippe" value="Édouard Philippe"><label for="philippe">Édouard Philippe</label></div>
+      <div class="candidate"><input type="radio" name="candidate" id="attal" value="Gabriel Attal"><label for="attal">Gabriel Attal</label></div>
+      <div class="candidate"><input type="radio" name="candidate" id="lemaire" value="Bruno Le Maire"><label for="lemaire">Bruno Le Maire</label></div>
+      <div class="candidate"><input type="radio" name="candidate" id="darmanin" value="Gérald Darmanin"><label for="darmanin">Gérald Darmanin</label></div>
+      <div class="candidate"><input type="radio" name="candidate" id="bayrou" value="François Bayrou"><label for="bayrou">François Bayrou</label></div>
 
-    <button type="button" id="voteButton">Valider mon vote</button>
-  </form>
+      <!-- Droite / RN / Souverainistes -->
+      <div class="candidate"><input type="radio" name="candidate" id="lepen" value="Marine Le Pen"><label for="lepen">Marine Le Pen</label></div>
+      <div class="candidate"><input type="radio" name="candidate" id="bardella" value="Jordan Bardella"><label for="bardella">Jordan Bardella</label></div>
+      <div class="candidate"><input type="radio" name="candidate" id="zemmour" value="Éric Zemmour"><label for="zemmour">Éric Zemmour</label></div>
+      <div class="candidate"><input type="radio" name="candidate" id="dupont" value="Nicolas Dupont-Aignan"><label for="dupont">Nicolas Dupont‑Aignan</label></div>
 
-  <div id="result"></div>
+      <!-- Les Républicains -->
+      <div class="candidate"><input type="radio" name="candidate" id="retailleau" value="Bruno Retailleau"><label for="retailleau">Bruno Retailleau</label></div>
+      <div class="candidate"><input type="radio" name="candidate" id="bertrand" value="Xavier Bertrand"><label for="bertrand">Xavier Bertrand</label></div>
+      <div class="candidate"><input type="radio" name="candidate" id="wauquiez" value="Laurent Wauquiez"><label for="wauquiez">Laurent Wauquiez</label></div>
+      <div class="candidate"><input type="radio" name="candidate" id="pecresse" value="Valérie Pécresse"><label for="pecresse">Valérie Pécresse</label></div>
+
+      <!-- Écologistes -->
+      <div class="candidate"><input type="radio" name="candidate" id="tondelier" value="Marine Tondelier"><label for="tondelier">Marine Tondelier</label></div>
+      <div class="candidate"><input type="radio" name="candidate" id="rousseau" value="Sandrine Rousseau"><label for="rousseau">Sandrine Rousseau</label></div>
+      <div class="candidate"><input type="radio" name="candidate" id="jadot" value="Yannick Jadot"><label for="jadot">Yannick Jadot</label></div>
+      <div class="candidate"><input type="radio" name="candidate" id="batho" value="Delphine Batho"><label for="batho">Delphine Batho</label></div>
+
+      <!-- Gauche / LFI / PS -->
+      <div class="candidate"><input type="radio" name="candidate" id="autain" value="Clémentine Autain"><label for="autain">Clémentine Autain</label></div>
+      <div class="candidate"><input type="radio" name="candidate" id="ruffin" value="François Ruffin"><label for="ruffin">François Ruffin</label></div>
+      <div class="candidate"><input type="radio" name="candidate" id="melenchon" value="Jean-Luc Mélenchon"><label for="melenchon">Jean‑Luc Mélenchon</label></div>
+      <div class="candidate"><input type="radio" name="candidate" id="faure" value="Olivier Faure"><label for="faure">Olivier Faure</label></div>
+      <div class="candidate"><input type="radio" name="candidate" id="hollande" value="François Hollande"><label for="hollande">François Hollande</label></div>
+      <div class="candidate"><input type="radio" name="candidate" id="royal" value="Ségolène Royal"><label for="royal">Ségolène Royal</label></div>
+
+      <!-- Extrême gauche -->
+      <div class="candidate"><input type="radio" name="candidate" id="arthaud" value="Nathalie Arthaud"><label for="arthaud">Nathalie Arthaud</label></div>
+      <div class="candidate"><input type="radio" name="candidate" id="poutou" value="Philippe Poutou"><label for="poutou">Philippe Poutou</label></div>
+
+      <!-- Options additionnelles -->
+      <div class="candidate"><input type="radio" name="candidate" id="blanc" value="Vote blanc"><label for="blanc">Vote blanc</label></div>
+      <div class="candidate"><input type="radio" name="candidate" id="indecis" value="Indécis"><label for="indecis">Indécis</label></div>
+      <div class="candidate"><input type="radio" name="candidate" id="nevotera" value="Ne votera pas"><label for="nevotera">Ne votera pas</label></div>
+
+      <button type="button" id="voteButton">Valider mon vote</button>
+    </form>
+  </div>
+
+  <div id="alreadyVotedMessage" class="hidden">
+    <p style="text-align:center; font-weight:bold; color: green; font-size: 1.2em;">Merci ! Votre vote a été enregistré.</p>
+  </div>
+
+  <div id="result">Chargement des résultats...</div>
   
-  <!-- Bouton de secours pour TOI (pour tester) -->
-  <button onclick="resetMyVote()" style="margin-top:50px; background:none; color:gray; font-size:10px; border:1px solid #ccc;">Réinitialiser mon vote (Test uniquement)</button>
+  <p class="disclaimer">Ces résultats reflètent uniquement les votes des utilisateurs de cette plateforme.</p>
 
   <script>
     const SUPABASE_URL = "https://twdemyzpdeelatouccz.supabase.co";
@@ -45,34 +85,35 @@
 
     const voteForm = document.getElementById("voteForm");
     const voteButton = document.getElementById("voteButton");
+    const voteContainer = document.getElementById("voteContainer");
+    const alreadyVotedMessage = document.getElementById("alreadyVotedMessage");
     const resultDiv = document.getElementById("result");
 
-    // 1. AU CHARGEMENT
-    window.onload = () => {
+    // --- 1. FONCTION AU CHARGEMENT ---
+    window.addEventListener('DOMContentLoaded', () => {
       if (localStorage.getItem("hasVoted") === "true") {
-        afficherDejaVote();
+        afficherResultatsUniquement();
       }
       chargerResultats();
-    };
+    });
 
-    // 2. BOUTON VALIDER
+    // --- 2. GESTION DU VOTE ---
     voteButton.addEventListener("click", async () => {
       const selected = document.querySelector('input[name="candidate"]:checked');
       
       if (!selected) {
-        alert("Veuillez sélectionner un candidat.");
+        alert("Merci de choisir un candidat.");
         return;
       }
 
-      // Désactiver pour éviter le double clic
       voteButton.disabled = true;
-      voteButton.textContent = "Enregistrement...";
+      voteButton.textContent = "Envoi en cours...";
 
-      const success = await envoyerVote(selected.value);
+      const success = await envoyerVoteSupabase(selected.value);
 
       if (success) {
         localStorage.setItem("hasVoted", "true");
-        afficherDejaVote();
+        afficherResultatsUniquement();
         chargerResultats();
       } else {
         voteButton.disabled = false;
@@ -80,7 +121,8 @@
       }
     });
 
-    async function envoyerVote(candidateName) {
+    // --- 3. COMMUNICATION AVEC SUPABASE ---
+    async function envoyerVoteSupabase(nomCandidat) {
       try {
         const response = await fetch(`${SUPABASE_URL}/rest/v1/votes`, {
           method: "POST",
@@ -89,16 +131,11 @@
             "apikey": SUPABASE_KEY,
             "Authorization": `Bearer ${SUPABASE_KEY}`
           },
-          body: JSON.stringify({ candidate: candidateName })
+          body: JSON.stringify({ candidate: nomCandidat })
         });
-
-        if (response.ok) return true;
-        
-        const err = await response.json();
-        alert("Erreur base de données : " + err.message);
-        return false;
+        return response.ok;
       } catch (e) {
-        alert("Erreur de connexion.");
+        alert("Erreur réseau. Vérifie ta connexion.");
         return false;
       }
     }
@@ -113,25 +150,20 @@
         const counts = {};
         data.forEach(v => counts[v.candidate] = (counts[v.candidate] || 0) + 1);
 
-        let html = "<h3>Résultats actuels</h3>";
+        let html = "<h3>Résultats en direct</h3>";
+        // Tri des résultats du plus grand au plus petit
         Object.entries(counts).sort((a,b) => b[1] - a[1]).forEach(([name, count]) => {
-          html += `<div class="vote-item"><span>${name}</span> <span>${count} voix</span></div>`;
+          html += `<div class="vote-bar"><span>${name}</span> <span><b>${count}</b> voix</span></div>`;
         });
         resultDiv.innerHTML = html;
       } catch (e) {
-        console.error("Erreur résultats:", e);
+        resultDiv.innerHTML = "Erreur lors du chargement des résultats.";
       }
     }
 
-    function afficherDejaVote() {
-      voteForm.style.display = "none";
-      document.getElementById("instruction").innerHTML = "<strong>Merci ! Votre vote a été pris en compte.</strong>";
-    }
-
-    // FONCTION POUR QUE TU PUISSES RE-VOTER PENDANT TES TESTS
-    function resetMyVote() {
-      localStorage.removeItem("hasVoted");
-      location.reload();
+    function afficherResultatsUniquement() {
+      voteContainer.classList.add("hidden");
+      alreadyVotedMessage.classList.remove("hidden");
     }
   </script>
 </body>
