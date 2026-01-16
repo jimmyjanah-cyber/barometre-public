@@ -8,123 +8,104 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2553488319378463" crossorigin="anonymous"></script>
     <style>
-        :root { --primary: #1a3a5f; --accent: #e63946; --bg: #f0f2f5; --card: #ffffff; }
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--bg); margin: 0; padding: 10px; color: #333; }
-        .container { max-width: 850px; margin: 0 auto; }
-        header { text-align: center; background: var(--primary); color: white; padding: 30px 15px; border-radius: 12px; margin-bottom: 20px; }
-        .voting-section { background: var(--card); padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .candidate-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 20px; }
-        .candidate-card { border: 2px solid #eee; padding: 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; }
-        .candidate-card input { margin-right: 12px; }
-        #btn-vote { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 25px; }
-        .results-box { background: white; padding: 25px; border-radius: 12px; margin-top: 30px; }
-        .bar-container { margin-bottom: 15px; }
-        .bar-info { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: 600; }
-        .bar-outer { background: #eee; height: 18px; border-radius: 9px; overflow: hidden; }
-        .bar-inner { height: 100%; background: linear-gradient(90deg, var(--primary), #4a90e2); width: 0%; transition: width 1s ease-in-out; }
+        :root { --primary: #1a3a5f; --bg: #f0f2f5; --card: #ffffff; }
+        body { font-family: sans-serif; background-color: var(--bg); margin: 0; padding: 10px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { text-align: center; background: var(--primary); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .voting-section { background: var(--card); padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .candidate-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+        .candidate-card { border: 1px solid #ddd; padding: 10px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; }
+        #btn-vote { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 5px; font-size: 18px; margin-top: 20px; cursor: pointer; }
+        .bar-container { margin-bottom: 10px; }
+        .bar-info { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; }
+        .bar-outer { background: #eee; height: 15px; border-radius: 10px; overflow: hidden; }
+        .bar-inner { height: 100%; background: #4a90e2; transition: width 1s; }
         .hidden { display: none; }
-        .success-msg { text-align: center; color: #2d6a4f; font-weight: bold; padding: 20px; }
     </style>
 </head>
 <body>
 <div class="container">
-    <header><h1>Baromètre Présidentiel 2027</h1><p>Sondage Citoyen Indépendant</p></header>
+    <header><h1>Baromètre 2027</h1></header>
+
     <div id="vote-area">
         <div class="voting-section">
-            <h2 style="margin-top:0">Pour qui voteriez-vous aujourd'hui ?</h2>
+            <h2>Votre choix :</h2>
             <div class="candidate-grid" id="candidates-list"></div>
-            <button id="btn-vote">Confirmer mon vote</button>
+            <button id="btn-vote">Voter</button>
         </div>
     </div>
-    <div id="thanks-area" class="voting-section hidden success-msg">✅ Merci ! Votre vote a été enregistré.</div>
-    <div class="results-box"><h2>Classement en temps réel</h2><div id="results-render">Chargement des résultats...</div></div>
+
+    <div id="thanks-area" class="voting-section hidden">
+        <h2 style="color:green; text-align:center;">✅ Vote enregistré !</h2>
+    </div>
+
+    <div class="voting-section" style="margin-top:20px;">
+        <h2>Résultats en temps réel</h2>
+        <div id="results-render">Chargement...</div>
+    </div>
+    
+    <!-- Bouton de test pour toi -->
+    <button onclick="localStorage.clear(); location.reload();" style="margin-top:20px; font-size:10px; opacity:0.3;">Réinitialiser mon vote (Test)</button>
 </div>
 
 <script>
-    const SB_URL = "https://twldemyzpdeelatouccz.supabase.co";
+    const SB_URL = "https://twdemyzpdeelatouccz.supabase.co";
     const SB_KEY = "sb_publishable_s2WGwh1hX88XYRokc4E01w_axS9n7ad";
     const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-    // --- NOUVELLE LOGIQUE D'IDENTIFIANT UNIQUE ---
-    // On crée un identifiant aléatoire stocké sur le téléphone de l'utilisateur
-    let voterID = localStorage.getItem('voter_unique_id');
-    if (!voterID) {
-        voterID = 'usr-' + Math.random().toString(36).substr(2, 16) + '-' + Date.now();
-        localStorage.setItem('voter_unique_id', voterID);
+    // Generation d'un ID UNIQUE par téléphone
+    let myID = localStorage.getItem('voter_id_v2');
+    if (!myID) {
+        myID = 'user-' + Math.random().toString(36).substring(2, 15);
+        localStorage.setItem('voter_id_v2', myID);
     }
 
-    const candidates = [
-        "Édouard PHILIPPE", "Marine TONDELIER", "Jordan BARDELLA", "Marine LE PEN", 
-        "Gabriel ATTAL", "Bruno RETAILLEAU", "Éric CIOTTI", "Bruno LE MAIRE", 
-        "Xavier BERTRAND", "Gérald DARMANIN", "Sébastien LECORNU", "Jean-Luc MÉLENCHON", 
-        "Philippe POUTOU", "Fabien ROUSSEL", "Olivier FAURE", "Raphaël GLUCKSMANN", 
-        "Yannick JADOT", "Sandrine ROUSSEAU", "Ségolène ROYAL", "François HOLLANDE", 
-        "Bernard CAZENEUVE", "Clémentine AUTAIN", "Nicolas DUPONT-AIGNAN", 
-        "François ASSELINEAU", "Dominique DE VILLEPIN", "Marion MARÉCHAL", 
-        "Philippe de VILLIERS", "Éric Zemmour", "Vote blanc", "Indécis"
-    ];
+    const candidates = ["Édouard PHILIPPE", "Marine TONDELIER", "Jordan BARDELLA", "Marine LE PEN", "Gabriel ATTAL", "Bruno RETAILLEAU", "Éric CIOTTI", "Bruno LE MAIRE", "Xavier BERTRAND", "Gérald DARMANIN", "Sébastien LECORNU", "Jean-Luc MÉLENCHON", "Philippe POUTOU", "Fabien ROUSSEL", "Olivier FAURE", "Raphaël GLUCKSMANN", "Yannick JADOT", "Sandrine ROUSSEAU", "Ségolène ROYAL", "François HOLLANDE", "Bernard CAZENEUVE", "Clémentine AUTAIN", "Nicolas DUPONT-AIGNAN", "François ASSELINEAU", "Dominique DE VILLEPIN", "Marion MARÉCHAL", "Philippe de VILLIERS", "Éric Zemmour", "Vote blanc", "Indécis"];
 
-    window.onload = async () => {
-        renderCandidates();
-        checkVoteStatus();
+    window.onload = () => {
+        const list = document.getElementById('candidates-list');
+        candidates.forEach(name => {
+            const id = name.replace(/\s+/g, '-');
+            list.innerHTML += `<label class="candidate-card"><input type="radio" name="c" value="${name}"> ${name}</label>`;
+        });
+        
+        if(localStorage.getItem('has_voted_2027') === 'true') {
+            document.getElementById('vote-area').classList.add('hidden');
+            document.getElementById('thanks-area').classList.remove('hidden');
+        }
         loadResults();
     };
 
-    function renderCandidates() {
-        const list = document.getElementById('candidates-list');
-        candidates.forEach(name => {
-            const id = name.replace(/\s+/g, '-').toLowerCase();
-            list.innerHTML += `<label class="candidate-card" for="${id}"><input type="radio" name="candidate" id="${id}" value="${name}"><span>${name}</span></label>`;
-        });
-    }
-
-    function checkVoteStatus() {
-        // Si le badge "a déjà voté" existe dans le téléphone
-        if (localStorage.getItem('voted2027') === 'true') {
-            hideVoting();
-        }
-    }
-
-    function hideVoting() {
-        document.getElementById('vote-area').classList.add('hidden');
-        document.getElementById('thanks-area').classList.remove('hidden');
-    }
-
-    document.getElementById('btn-vote').addEventListener('click', async () => {
-        const choice = document.querySelector('input[name="candidate"]:checked');
-        if (!choice) return alert("Sélectionnez un candidat !");
-        
-        const btn = document.getElementById('btn-vote');
-        btn.disabled = true;
-        btn.textContent = "Enregistrement...";
+    document.getElementById('btn-vote').onclick = async () => {
+        const sel = document.querySelector('input[name="c"]:checked');
+        if(!sel) return alert("Choisis un candidat");
 
         const { error } = await _supabase.from('votes').insert([{ 
-            candidate: choice.value, 
-            voter_fingerprint: voterID // On envoie l'ID aléatoire unique
+            candidate: sel.value, 
+            voter_fingerprint: myID 
         }]);
 
-        if (error) {
-            alert("Une erreur est survenue ou vous avez déjà voté.");
-            btn.disabled = false;
+        if(error) {
+            alert("Erreur ou déjà voté");
         } else {
-            localStorage.setItem('voted2027', 'true');
-            hideVoting();
-            loadResults();
+            localStorage.setItem('has_voted_2027', 'true');
+            location.reload();
         }
-    });
+    };
 
     async function loadResults() {
         const { data, error } = await _supabase.from('votes').select('candidate');
-        if (error) { document.getElementById('results-render').innerHTML = "Erreur chargement."; return; }
-        const total = data.length;
+        if(error) { document.getElementById('results-render').innerHTML = "Erreur Supabase : " + error.message; return; }
+        
         const stats = {};
         data.forEach(v => stats[v.candidate] = (stats[v.candidate] || 0) + 1);
-        const sorted = Object.entries(stats).sort((a, b) => b[1] - a[1]);
-        const container = document.getElementById('results-render');
-        container.innerHTML = "";
+        const sorted = Object.entries(stats).sort((a,b) => b[1] - a[1]);
+        
+        const res = document.getElementById('results-render');
+        res.innerHTML = "";
         sorted.forEach(([name, count]) => {
-            const pc = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
-            container.innerHTML += `<div class="bar-container"><div class="bar-info"><span>${name}</span><span>${pc}% (${count} voix)</span></div><div class="bar-outer"><div class="bar-inner" style="width:${pc}%"></div></div></div>`;
+            const pc = ((count / data.length) * 100).toFixed(1);
+            res.innerHTML += `<div class="bar-container"><div class="bar-info"><span>${name}</span><span>${pc}%</span></div><div class="bar-outer"><div class="bar-inner" style="width:${pc}%"></div></div></div>`;
         });
     }
 </script>
