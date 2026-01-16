@@ -70,35 +70,7 @@
   <p class="disclaimer">Ces résultats reflètent uniquement les votes des utilisateurs de cette plateforme.</p>
 
   <script>
-    const form = document.getElementById('voteForm');
-    const voteButton = document.getElementById('voteButton');
-    const resultDiv = document.getElementById('result');
-
-    // Activer le bouton quand un choix est sélectionné
-    form.addEventListener('change', () => {
-      voteButton.disabled = false;
-    });
-
-    // Gérer le vote
-    voteButton.addEventListener('click', () => {
-      const selected = form.elements['candidate'].value;
-      if (!selected) return;
-
-      // Enregistrer en localStorage pour empêcher plusieurs votes
-      const voted = localStorage.getItem('hasVoted');
-      if (voted) {
-        resultDiv.textContent = 'Vous avez déjà voté. Merci !';
-        return;
-      }
-      localStorage.setItem('hasVoted', 'true');
-
-      // Stocker le choix localement (optionnel)
-      localStorage.setItem('voteChoice', selected);
-
-      resultDiv.textContent = `Merci d'avoir voté pour: ${selected}.`;
-      voteButton.disabled = true;
-    });
-  </script>
+    </script>
 <!-- SUPABASE -->
   <script>
   const SUPABASE_URL = "https://twldemyzpdeelatouccz.supabase.co";
@@ -148,16 +120,36 @@
       div.id = "resultsBox";
       document.body.appendChild(div);
     }
+document.getElementById("voteButton").addEventListener("click", async (e) => {
+  e.preventDefault();
 
-    document.getElementById("voteButton").addEventListener("click", e => {
-      e.preventDefault();
-      const c = document.querySelector('input[name="candidate"]:checked');
-      if (!c) return alert("Choisis un candidat");
-      envoyerVote(c.value);
-    });
+  // 🔒 Anti double vote
+  if (localStorage.getItem("hasVoted") === "true") {
+    alert("Vous avez déjà voté. Merci !");
+    return;
+  }
+
+  const c = document.querySelector('input[name="candidate"]:checked');
+  if (!c) {
+    alert("Choisis un candidat");
+    return;
+  }
+
+  // On verrouille AVANT l'envoi
+  localStorage.setItem("hasVoted", "true");
+
+  await envoyerVote(c.value);
+
+  document.getElementById("voteButton").disabled = true;
+});
+
 
     chargerResultats();
   });
+if (localStorage.getItem("hasVoted") === "true") {
+  document.getElementById("voteButton").disabled = true;
+}
 </script>
 <body>
 </html>
+final fix anti double vote
