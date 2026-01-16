@@ -78,93 +78,112 @@
   <div id="result">Chargement des résultats...</div>
   
   <p class="disclaimer">Ces résultats reflètent uniquement les votes des utilisateurs de cette plateforme.</p>
+<script>
+  const SUPABASE_URL = "https://twdemyzpdeelatouccz.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_s2WGwh1hX88XYRokc4E01w_axS9n7ad";
 
-  <script>
-    const SUPABASE_URL = "https://twdemyzpdeelatouccz.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_s2WGwh1hX88XYRokc4E01w_axS9n7ad";
+  const voteForm = document.getElementById("voteForm");
+  const voteButton = document.getElementById("voteButton");
+  const voteContainer = document.getElementById("voteContainer");
+  const alreadyVotedMessage = document.getElementById("alreadyVotedMessage");
+  const resultDiv = document.getElementById("result");
 
-    const voteForm = document.getElementById("voteForm");
-    const voteButton = document.getElementById("voteButton");
-    const voteContainer = document.getElementById("voteContainer");
-    const alreadyVotedMessage = document.getElementById("alreadyVotedMessage");
-    const resultDiv = document.getElementById("result");
+  // Fonctions utilitaires pour accéder au stockage de manière sûre
+  function getHasVoted() {
+    try {
+      return localStorage.getItem("hasVoted") === "true";
+    } catch (e) {
+      // lecture du cookie en repli
+      return document.cookie.includes("hasVoted=true");
+    }
+  }
+  function setHasVoted() {
+    try {
+      localStorage.setItem("hasVoted", "true");
+    } catch (e) {
+      // repli avec cookie valable une semaine
+      document.cookie = "hasVoted=true; max-age=" + 7 * 24 * 3600 + "; path=/";
+    }
+  }
 
-    // --- 1. FONCTION AU CHARGEMENT ---
-    window.addEventListener('DOMContentLoaded', () => {
-      if (localStorage.getItem("hasVoted") === "true") {
-        afficherResultatsUniquement();
-      }
+  window.addEventListener('DOMContentLoaded', () => {
+    if (getHasVoted()) {
+      afficherResultatsUniquement();
+    }
+    chargerResultats();
+  });
+
+  voteButton.addEventListener("click", async () => {
+    const selected = document.querySelector('input[name="candidate"]:checked');
+
+    if (!selected) {
+      alert("Merci de choisir un candidat.");
+      return;
+    }
+
+    voteButton.disabled = true;
+    voteButton.textContent = "Envoi en cours...";
+
+    const success = await envoyerVoteSupabase(selected.value);
+
+    if (success) {
+      setHasVoted();
+      afficherResultatsUniquement();
       chargerResultats();
-    });
-
-    // --- 2. GESTION DU VOTE ---
-    voteButton.addEventListener("click", async () => {
-      const selected = document.querySelector('input[name="candidate"]:checked');
-      
-      if (!selected) {
-        alert("Merci de choisir un candidat.");
-        return;
-      }
-
-      voteButton.disabled = true;
-      voteButton.textContent = "Envoi en cours...";
-
-      const success = await envoyerVoteSupabase(selected.value);
-
-      if (success) {
-        localStorage.setItem("hasVoted", "true");
-        afficherResultatsUniquement();
-        chargerResultats();
-      } else {
-        voteButton.disabled = false;
-        voteButton.textContent = "Valider mon vote";
-      }
-    });
-
-    // --- 3. COMMUNICATION AVEC SUPABASE ---
-    async function envoyerVoteSupabase(nomCandidat) {
-      try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/votes`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "apikey": SUPABASE_KEY,
-            "Authorization": `Bearer ${SUPABASE_KEY}`
-          },
-          body: JSON.stringify({ candidate: nomCandidat })
-        });
-        return response.ok;
-      } catch (e) {
-        alert("Erreur réseau. Vérifie ta connexion.");
-        return false;
-      }
+    } else {
+      voteButton.disabled = false;
+      voteButton.textContent = "Valider mon vote";
     }
+  });
 
-    async function chargerResultats() {
-      try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/votes?select=candidate`, {
-          headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
-        });
-        const data = await res.json();
-        
-        const counts = {};
-        data.forEach(v => counts[v.candidate] = (counts[v.candidate] || 0) + 1);
-
-        let html = "<h3>Résultats en direct</h3>";
-        // Tri des résultats du plus grand au plus petit
-        Object.entries(counts).sort((a,b) => b[1] - a[1]).forEach(([name, count]) => {
-          html += `<div class="vote-bar"><span>${name}</span> <span><b>${count}</b> voix</span></div>`;
-        });
-        resultDiv.innerHTML = html;
-      } catch (e) {
-        resultDiv.innerHTML = "Erreur lors du chargement des résultats.";
-      }
+  async function envoyerVoteSupabase(nomCandidat) {
+    try {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/votes`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_KEY,
+          "Authorization": `Bearer ${SUPABASE_KEY}`,
+          // Supabase recommande ce header pour renvoyer l’enregistrement inséré
+          Prefer: "return=representation"
+        },
+        body: JSON.stringify({ candidate: nomCandidat })
+      });
+      return response.ok;
+    } catch (e) {
+      alert("Erreur réseau. Vérifie ta connexion.");
+      return false;
     }
+  }
 
-    function afficherResultatsUniquement() {
-      voteContainer.classList.add("hidden");
-      alreadyVotedMessage.classList.remove("hidden");
+  async function chargerResultats() {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/votes?select=candidate`, {
+        headers: {
+          "apikey": SUPABASE_KEY,
+          "Authorization": `Bearer ${SUPABASE_KEY}`
+        }
+      });
+      const data = await res.json();
+
+      const counts = {};
+      data.forEach(v => counts[v.candidate] = (counts[v.candidate] || 0) + 1);
+
+      let html = "<h3>Résultats en direct</h3>";
+      Object.entries(counts).sort((a, b) => b[1] - a[1]).forEach(([name, count]) => {
+        html += `<div class="vote-bar"><span>${name}</span> <span><b>${count}</b> voix</span></div>`;
+      });
+      resultDiv.innerHTML = html;
+    } catch (e) {
+      resultDiv.innerHTML = "Erreur lors du chargement des résultats.";
     }
-  </script>
+  }
+
+  function afficherResultatsUniquement() {
+    voteContainer.classList.add("hidden");
+    alreadyVotedMessage.classList.remove("hidden");
+  }
+</script>
+
 </body>
 </html>
