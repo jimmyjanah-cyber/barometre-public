@@ -154,25 +154,5 @@
         Ces résultats reflètent uniquement les votes des utilisateurs de cette plateforme.
       </p>`;
   }
-
-  document.addEventListener("DOMContentLoaded", () => {
-    // zone résultats
-    if (!document.getElementById("resultsBox")) {
-      const div = document.createElement("div");
-      div.id = "resultsBox";
-      document.body.appendChild(div);
-    }
-
-    // bouton vote
-    document.getElementById("voteButton")?.addEventListener("click", e => {
-      e.preventDefault();
-      const c = document.querySelector('input[name="candidate"]:checked');
-      if (!c) return alert("Choisis un candidat");
-      sendVote(c.value);
-    });
-
-    loadResults();
-  });
-</script>
 /body>
 </html>
